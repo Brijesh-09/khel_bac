@@ -42,3 +42,5 @@ userId 6740289bf6c05479fb8a50d2
 participants Array (empty)
 __v 0
 
+---------------testing with the UI-------------------------------
+postman user : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NDg1MDA2MmY4ODc2ZmY3YmQwMjBkNiIsInVzZXJuYW1lIjoicG9zdG1hbnVzZXIiLCJpYXQiOjE3MzI3OTIzMzMsImV4cCI6MTczMjc5NTkzM30.kxnSdI8WPqJ0OjEZFQXNC1vkMXDluXoRuxS11Y1z-0M

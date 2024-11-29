@@ -21,7 +21,7 @@ router.get('/users' , async(req, res)=> {
 
 // Sign Up
 router.post('/signup', async (req, res) => {
-    const { username, password } = req.body;
+    const { username, password , location} = req.body;
 
     try {
         const existingUser = await User.findOne({ username });
@@ -30,7 +30,7 @@ router.post('/signup', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = new User({ username, password: hashedPassword });
+        const newUser = new User({ username, password: hashedPassword , location});
 
         await newUser.save();
         res.status(201).json({ message: 'User registered successfully' });
@@ -55,7 +55,7 @@ router.post('/signin', async (req, res) => {
         }
 
         const token = jwt.sign({ id: user._id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Login successful', token });
+        res.status(200).json({ message: 'Login successful', token ,  location: user.location, });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
