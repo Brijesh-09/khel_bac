@@ -44,3 +44,11 @@ __v 0
 
 ---------------testing with the UI-------------------------------
 postman user : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NDg1MDA2MmY4ODc2ZmY3YmQwMjBkNiIsInVzZXJuYW1lIjoicG9zdG1hbnVzZXIiLCJpYXQiOjE3MzI3OTIzMzMsImV4cCI6MTczMjc5NTkzM30.kxnSdI8WPqJ0OjEZFQXNC1vkMXDluXoRuxS11Y1z-0M
+
+----------testing profile section---------------
+1:To view the events Joined by the user : working {/joinedevents}
+2: To View the events created by the user  : working fine {/events}
+"username": "profileuser",
+    "password": "1234",
+    "location" : "Mira Road" 
+    eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3NGQ3Y2NiYTQ0NTZlZmViYjYyY2UwNCIsInVzZXJuYW1lIjoicHJvZmlsZXVzZXIiLCJsb2NhdGlvbiI6Ik1pcmEgUm9hZCIsImlhdCI6MTczMzEzMTQ5MSwiZXhwIjoxNzMzMTM1MDkxfQ.sxY60yWOFYqUAGmKaQQ-8YqHsEyyXkgKS58swoyr5OU

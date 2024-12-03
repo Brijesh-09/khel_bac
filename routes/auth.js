@@ -40,6 +40,7 @@ router.post('/signup', async (req, res) => {
 });
 
 // Sign In
+// Sign In
 router.post('/signin', async (req, res) => {
     const { username, password } = req.body;
 
@@ -54,11 +55,22 @@ router.post('/signin', async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ id: user._id, username: user.username }, SECRET_KEY, { expiresIn: '1h' });
-        res.status(200).json({ message: 'Login successful', token ,  location: user.location, });
+        // Include location in the payload
+        const token = jwt.sign(
+            { 
+                id: user._id, 
+                username: user.username, 
+                location: user.location // Add location to the payload
+            },
+            SECRET_KEY, 
+            { expiresIn: '1h' }
+        );
+
+        res.status(200).json({ message: 'Login successful', token, location: user.location });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error });
     }
 });
+
 
 module.exports = router;
