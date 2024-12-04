@@ -28,7 +28,7 @@ router.get('/getallevents', async (req, res) => {
 router.get('/nearbyevents', authenticateToken, async (req, res) => {
     try {
         const location = req.user.location;  // User's location stored as a string
-        console.log(location)
+        // console.log(location)
         if (!location) {
             return res.status(400).json({ message: 'User location is not provided' });
         }
@@ -232,7 +232,8 @@ router.get('/joinedevents', authenticateToken, async (req, res) => {
     }
 });
 
-router.get('/share/:eventId', authenticateToken, async (req, res) => {
+// Public sharing endpoint
+router.get('/public/share/:eventId', async (req, res) => {
     const { eventId } = req.params;
     try {
         // Find the event by ID
@@ -243,10 +244,7 @@ router.get('/share/:eventId', authenticateToken, async (req, res) => {
             return res.status(404).json({ message: "Event Not Found" });
         }
 
-        // Optional: You might want to add an additional check to ensure the user has permission to view/share the event
-        // For example, checking if the user is the event creator or a participant
-        
-        // Prepare a shareable event object with relevant details
+        // Prepare the shareable event object with relevant details
         const shareableEvent = {
             eventId: event._id,
             eventname: event.eventname,
@@ -255,18 +253,37 @@ router.get('/share/:eventId', authenticateToken, async (req, res) => {
             remainingSpots: event.count
         };
 
-        // Return the shareable event details
+        // Generate the public URL for the event page (frontend URL)
+        const publicUrl = `http://localhost:5173/events/${eventId}`; // This will be the URL to share
+
+        // Return the public URL along with event details
         res.status(200).json({
             message: 'Event share details',
             event: shareableEvent,
-            // Optional: Generate a frontend shareable link
-            shareLink: `/events/${eventId}`
+            publicUrl: publicUrl // Send back the public URL
         });
     } catch (err) {
         res.status(500).json({ 
             message: 'Error generating shareable link', 
             error: err.message 
         });
+    }
+});
+
+// Original event details endpoint
+router.get('/events/:eventId', async (req, res) => {
+    const { eventId } = req.params;
+
+    try {
+        const event = await Event.findById(eventId);
+
+        if (!event) {
+            return res.status(404).json({ message: 'Event not found' });
+        }
+
+        res.status(200).json(event);
+    } catch (err) {
+        res.status(500).json({ message: 'Server error', error: err.message });
     }
 });
 
