@@ -42,78 +42,9 @@ router.get('/nearbyevents', authenticateToken, async (req, res) => {
     }
 });
 
-
-//join_event
-// router.post('/joinevent', authenticateToken, async (req, res) => {
-//     const { name, count } = req.body; // User provides event name and count to join
-
-//     try {
-//         // Validate count
-//         if (!count || count <= 0) {
-//             return res.status(400).json({ message: 'Invalid count provided' });
-//         }
-
-//         // Find the event by name
-//         const event = await Event.findOne({ eventname: name }).populate('participants');
-        
-//         if (!event) {
-//             return res.status(404).json({ message: 'Event not found' });
-//         }
-
-//         // Check if the event has enough spots available
-//         if (count > event.count) {
-//             return res.status(400).json({ message: `Insufficient spots available. Only ${event.count} spots left.` });
-//         }
-
-//         // Ensure participants is an array
-//         if (!Array.isArray(event.participants)) {
-//             event.participants = [];
-//         }
-
-//         // Check if the user is already a participant
-//         if (event.participants.some(user => user._id.toString() === req.user.id.toString())) {
-//             return res.status(400).json({ message: 'You have already joined this event' });
-//         }
-
-//         // Add the user to the participants array
-//         event.participants.push(req.user.id);
-
-//         // Update the event count
-//         event.count -= count;
-
-//         // Save the updated event
-//         await event.save();
-
-//         // Add the event ID to the user's joinedEvents array
-//         const user = await User.findById(req.user.id);
-//         if (!user) {
-//             return res.status(404).json({ message: 'User not found' });
-//         }
-
-//         // Add the event ID to the user's joinedEvents
-//         user.joinedEvents.push({ eventId: event._id });
-
-//         // Save the updated user
-//         await user.save();
-
-//         res.status(200).json({ 
-//             message: 'Successfully joined the event', 
-//             event: {
-//                 eventname: event.eventname,
-//                 location: event.location,
-//                 time: event.time,
-//                 count: event.count, // Remaining spots
-//                 participants: event.participants
-//             } 
-//         });
-//     } catch (err) {
-//         res.status(500).json({ message: 'Error joining event', error: err.message });
-//     }
-// });
-
 //join_event_2
 router.post('/joinevent', authenticateToken, async (req, res) => {
-    const { name, count } = req.body; // User provides event name and count to join
+    const { name, count } = req.body;
 
     try {
         // Validate count input
@@ -123,55 +54,40 @@ router.post('/joinevent', authenticateToken, async (req, res) => {
             });
         }
 
-        // Find the event by name and populate participants to get current state
-        const event = await Event.findOne({ eventname: name }).populate('participants');
+        // Find the event by name and populate participants
+        const event = await Event.findOne({ eventname: name });
         
         if (!event) {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        // Validate remaining spots
-        if (count > event.count) {
-            return res.status(400).json({ 
-                message: `Insufficient spots available. Only ${event.count} spot(s) left.`,
-                availableSpots: event.count
-            });
-        }
+        // Calculate remaining spots
+        const remainingSpots = event.count;
 
-        // Ensure participants is an array
-        event.participants = event.participants || [];
+// Check if there are enough spots
+if (count > remainingSpots) {
+    return res.status(400).json({ 
+        message: `Insufficient spots available. Only ${remainingSpots} spot(s) left.`,
+        availableSpots: remainingSpots
+    });
+}
 
         // Check if the user is already a participant
         const isAlreadyParticipant = event.participants.some(
-            user => user._id.toString() === req.user.id.toString()
+            participantId => participantId.toString() === req.user.id.toString()
         );
 
         if (isAlreadyParticipant) {
             return res.status(400).json({ 
-                message: 'You have already joined this event',
-                currentParticipation: event.participants.filter(
-                    user => user._id.toString() === req.user.id.toString()
-                ).length
-            });
-        }
-
-        // Validate total participants after joining
-        const totalParticipantsAfterJoining = event.participants.length + 1;
-        const totalSpotsRequired = count;
-
-        if (totalSpotsRequired > event.count) {
-            return res.status(400).json({
-                message: 'Not enough spots available',
-                availableSpots: event.count,
-                requestedSpots: totalSpotsRequired
+                message: 'You have already joined this event'
             });
         }
 
         // Add the user to the participants array
         event.participants.push(req.user.id);
 
-        // Update the event count
-        event.count -= totalSpotsRequired;
+        // Reduce the available spots
+        event.count -= count;
 
         // Save the updated event
         await event.save();
@@ -185,7 +101,7 @@ router.post('/joinevent', authenticateToken, async (req, res) => {
         // Add the event ID to the user's joinedEvents
         user.joinedEvents.push({ 
             eventId: event._id,
-            spotsReserved: totalSpotsRequired 
+            spotsReserved: count 
         });
 
         // Save the updated user
@@ -198,8 +114,9 @@ router.post('/joinevent', authenticateToken, async (req, res) => {
                 location: event.location,
                 time: event.time,
                 remainingSpots: event.count,
+                totalSpots: event.totalSpots,
                 totalParticipants: event.participants.length,
-                spotsReserved: totalSpotsRequired
+                spotsReserved: count
             } 
         });
 
@@ -290,14 +207,22 @@ router.get('/events/:eventId', async (req, res) => {
 router.post('/addevent', authenticateToken, async (req, res) => {
     try {
         const { eventname, location, count, time } = req.body;
-        // console.log(req.user);
-        // Use the user ID from the token to associate the event with the user
+        
+        // Validate input
+        if (!count || count <= 0) {
+            return res.status(400).json({ 
+                message: 'Event must have a valid number of spots' 
+            });
+        }
+
         const newEvent = new Event({
             eventname,
             location,
-            count,
+            count, // This will be available spots
             time,
-            userId: req.user.id,  // Attach user ID from the token
+            userId: req.user.id,
+            participants: [],
+            totalSpots: count // Store the original total
         });
 
         const savedEvent = await newEvent.save();
