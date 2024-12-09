@@ -1,4 +1,12 @@
 {
+  "name": "your-backend-project",
+  "version": "1.0.0",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
   "dependencies": {
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
@@ -7,5 +15,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.8.2",
     "routes": "^2.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
   }
 }
