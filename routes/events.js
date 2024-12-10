@@ -207,10 +207,11 @@ router.get('/joinedevents', authenticateToken, async (req, res) => {
 
 //share_fix
 // Public sharing endpoint
+// Public sharing endpoint
 router.get('/public/share/:eventId', async (req, res) => {
     const { eventId } = req.params;
     try {
-        // Find the event by ID and populate participants
+        // Find the event by ID and populate participants (optional)
         const event = await Event.findById(eventId).populate('participants', 'username');
         
         // Check if the event exists
@@ -226,14 +227,18 @@ router.get('/public/share/:eventId', async (req, res) => {
             time: event.time,
             remainingSpots: event.count,
             totalSpots: event.totalSpots,
-            participantsCount: event.participants.length
+            participantsCount: event.participants.length,
         };
 
-        // Return event details for sharing
+        // Construct a complete public URL for sharing
+        const baseUrl = `${req.protocol}://${req.get('host')}`; // Dynamically generate base URL
+        const publicUrl = `${baseUrl}/events/${eventId}`;
+
+        // Return the shareable link and event details
         res.status(200).json({
             message: 'Event share details',
             event: shareableEvent,
-            shareLink: `/events/${eventId}` // Return just the path, let frontend handle full URL
+            publicUrl, // Full URL for sharing
         });
     } catch (err) {
         res.status(500).json({ 
@@ -242,6 +247,7 @@ router.get('/public/share/:eventId', async (req, res) => {
         });
     }
 });
+
 
 // Public event details endpoint
 router.get('/events/:eventId', async (req, res) => {
