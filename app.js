@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 
 app.use(cors({
-    origin: 'https://khel-fron.vercel.app', // Allow requests from this frontend origin
+    origin: ['https://khel-fron.vercel.app', 'http://localhost:5173/'], // Allow requests from this frontend origin
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
     credentials: true, // Allow cookies if necessary
 }));
