@@ -171,7 +171,7 @@ router.get('/public/share/:eventId', async (req, res) => {
         };
 
         // Generate the public URL for the event page (frontend URL)
-        const publicUrl = `http://localhost:5173/events/${eventId}`; // This will be the URL to share
+        const publicUrl = `https://khel-bac.onrender.com/events/${eventId}`; // This will be the URL to share
 
         // Return the public URL along with event details
         res.status(200).json({
