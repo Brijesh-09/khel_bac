@@ -150,11 +150,68 @@ router.get('/joinedevents', authenticateToken, async (req, res) => {
 });
 
 // Public sharing endpoint
+// router.get('/public/share/:eventId', async (req, res) => {
+//     const { eventId } = req.params;
+//     try {
+//         // Find the event by ID
+//         const event = await Event.findById(eventId);
+        
+//         // Check if the event exists
+//         if (!event) {
+//             return res.status(404).json({ message: "Event Not Found" });
+//         }
+
+//         // Prepare the shareable event object with relevant details
+//         const shareableEvent = {
+//             eventId: event._id,
+//             eventname: event.eventname,
+//             location: event.location,
+//             time: event.time,
+//             remainingSpots: event.count
+//         };
+
+//         // Generate the public URL for the event page (frontend URL)
+//         const publicUrl = `khel-fron.vercel.app/events/${eventId}`; // This will be the URL to share
+
+//         // Return the public URL along with event details
+//         res.status(200).json({
+//             message: 'Event share details',
+//             event: shareableEvent,
+//             publicUrl: publicUrl // Send back the public URL
+//         });
+//     } catch (err) {
+//         res.status(500).json({ 
+//             message: 'Error generating shareable link', 
+//             error: err.message 
+//         });
+//     }
+// });
+
+// // Original event details endpoint
+// router.get('/events/:eventId', async (req, res) => {
+//     const { eventId } = req.params;
+
+//     try {
+//         const event = await Event.findById(eventId);
+
+//         if (!event) {
+//             return res.status(404).json({ message: 'Event not found' });
+//         }
+
+//         res.status(200).json(event);
+//     } catch (err) {
+//         res.status(500).json({ message: 'Server error', error: err.message });
+//     }
+// });
+
+
+//share_fix
+// Public sharing endpoint
 router.get('/public/share/:eventId', async (req, res) => {
     const { eventId } = req.params;
     try {
-        // Find the event by ID
-        const event = await Event.findById(eventId);
+        // Find the event by ID and populate participants
+        const event = await Event.findById(eventId).populate('participants', 'username');
         
         // Check if the event exists
         if (!event) {
@@ -167,17 +224,16 @@ router.get('/public/share/:eventId', async (req, res) => {
             eventname: event.eventname,
             location: event.location,
             time: event.time,
-            remainingSpots: event.count
+            remainingSpots: event.count,
+            totalSpots: event.totalSpots,
+            participantsCount: event.participants.length
         };
 
-        // Generate the public URL for the event page (frontend URL)
-        const publicUrl = `https://khel-bac.onrender.com/events/${eventId}`; // This will be the URL to share
-
-        // Return the public URL along with event details
+        // Return event details for sharing
         res.status(200).json({
             message: 'Event share details',
             event: shareableEvent,
-            publicUrl: publicUrl // Send back the public URL
+            shareLink: `/events/${eventId}` // Return just the path, let frontend handle full URL
         });
     } catch (err) {
         res.status(500).json({ 
@@ -187,20 +243,34 @@ router.get('/public/share/:eventId', async (req, res) => {
     }
 });
 
-// Original event details endpoint
+// Public event details endpoint
 router.get('/events/:eventId', async (req, res) => {
     const { eventId } = req.params;
 
     try {
-        const event = await Event.findById(eventId);
+        // Find event and populate participants with username only
+        const event = await Event.findById(eventId).populate('participants', 'username');
 
         if (!event) {
             return res.status(404).json({ message: 'Event not found' });
         }
 
-        res.status(200).json(event);
+        // Return formatted event details
+        res.json({
+            _id: event._id,
+            eventname: event.eventname,
+            location: event.location,
+            count: event.count,
+            totalSpots: event.totalSpots,
+            time: event.time,
+            participants: event.participants.map(p => p.username),
+            isFull: event.count === 0
+        });
     } catch (err) {
-        res.status(500).json({ message: 'Server error', error: err.message });
+        res.status(500).json({ 
+            message: 'Error fetching event details', 
+            error: err.message 
+        });
     }
 });
 
