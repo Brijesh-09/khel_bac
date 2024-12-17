@@ -28,7 +28,6 @@ router.get('/getallevents', async (req, res) => {
 router.get('/nearbyevents', authenticateToken, async (req, res) => {
     try {
         const location = req.user.location;  // User's location stored as a string
-        // console.log(location)
         if (!location) {
             return res.status(400).json({ message: 'User location is not provided' });
         }
@@ -36,11 +35,27 @@ router.get('/nearbyevents', authenticateToken, async (req, res) => {
         // Find events with location that matches the user's location string
         const events = await Event.find({ location: { $regex: new RegExp(location, 'i') } });
 
-        res.status(200).json(events);
+        // For each event, map the participant IDs to usernames
+        const updatedEvents = await Promise.all(events.map(async (event) => {
+            const participantsWithUsernames = await Promise.all(event.participants.map(async (userId) => {
+                // Fetch the user based on userId (assuming you have a User model to get the username)
+                const user = await User.findById(userId);
+                return user ? user.username : null;  // Return the username or null if user not found
+            }));
+
+            // Create a new event object with participants' usernames instead of user IDs
+            return {
+                ...event.toObject(), // Convert mongoose document to plain object
+                participants: participantsWithUsernames,
+            };
+        }));
+
+        res.status(200).json(updatedEvents);
     } catch (err) {
         res.status(500).json({ Message: 'Server Error', error: err.message });
     }
 });
+
 
 //join_event_2
 router.post('/joinevent', authenticateToken, async (req, res) => {
