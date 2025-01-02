@@ -73,7 +73,7 @@ router.post('/signin', async (req, res) => {
 });
 
 // Add a new endpoint to handle Google authentication
-router.post('/auth/google', async (req, res) => {
+router.post('/google', async (req, res) => {
     try {
       const { token, email, displayName } = req.body;
       
