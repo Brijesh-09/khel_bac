@@ -72,5 +72,39 @@ router.post('/signin', async (req, res) => {
     }
 });
 
+// Add a new endpoint to handle Google authentication
+router.post('/auth/google', async (req, res) => {
+    try {
+      const { token, email, displayName } = req.body;
+      
+      // Verify the Firebase ID token
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      
+      // Create or update user in your database
+      let user = await User.findOne({ email });
+      
+      if (!user) {
+        user = new User({
+          username: displayName || email.split('@')[0],
+          email,
+          location: '',
+        });
+        await user.save();
+      }
+      
+      // Generate JWT token
+      const jwtToken = generateToken(user);
+      
+      res.json({
+        token: jwtToken,
+        location: user.location,
+        message: 'Successfully authenticated with Google'
+      });
+    } catch (error) {
+      res.status(401).json({ message: 'Authentication failed' });
+    }
+  });
+  
+
 
 module.exports = router;

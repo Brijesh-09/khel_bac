@@ -49,7 +49,7 @@ router.get('/nearbyevents', authenticateToken, async (req, res) => {
                 participants: participantsWithUsernames,
             };
         }));
-
+        console.log(updatedEvents);
         res.status(200).json(updatedEvents);
     } catch (err) {
         res.status(500).json({ Message: 'Server Error', error: err.message });
